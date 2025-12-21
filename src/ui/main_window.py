@@ -13,6 +13,8 @@ import customtkinter as ctk
 import darkdetect
 import pyperclip
 import requests
+import yt_dlp
+import io
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 from ui.toast import show_toast
