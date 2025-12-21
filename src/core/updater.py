@@ -10,8 +10,6 @@ class UpdateManager:
     LATEST_API_URL = "https://api.github.com/repos/okata-t/yt-dlp_GUI/releases/latest"
     LOG_FILE = "log.txt"
 
-    def __init__(self):
-        pass
 
     def get_latest_version(self):
         """最新バージョンをGitHubから取得する。"""

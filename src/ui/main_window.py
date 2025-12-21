@@ -1,8 +1,5 @@
 import datetime
-import io
-import math
 import os
-import subprocess
 import sys
 import threading
 import tkinter as tk
