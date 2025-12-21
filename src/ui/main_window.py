@@ -21,10 +21,10 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 from win11toast import toast
 
-from ..core.config import ConfigManager
-from ..core.updater import UpdateManager
-from ..core.downloader import DownloadManager
-from . import color
+from core.config import ConfigManager
+from core.updater import UpdateManager
+from core.downloader import DownloadManager
+from ui import color
 
 VERSION = "v2.9.1"
 
@@ -500,12 +500,12 @@ class QuickMode:
         self.icon = Icon("yt-dlp_GUI", icon=image, title="yt-dlp_GUI", menu=menu)
         self.icon.run()
     def quit(self):
-        # We need a reference to the app instance. This is a bit tricky now.
-        # For now, assume a global app or pass it.
-        from .. import main_app_instance # Not ideal
-        main_app_instance.deiconify()
+        import ui.main_window
+        if hasattr(ui.main_window, "main_app_instance"):
+            ui.main_window.main_app_instance.deiconify()
         self.icon.stop()
     def download(self):
-        from .. import main_app_instance
-        main_app_instance.paste()
-        main_app_instance.start_download()
+        import ui.main_window
+        if hasattr(ui.main_window, "main_app_instance"):
+            ui.main_window.main_app_instance.paste()
+            ui.main_window.main_app_instance.start_download()

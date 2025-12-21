@@ -1,0 +1,13 @@
+CTkMenuBar
+CTkMessagebox
+customtkinter
+darkdetect
+requests
+yt-dlp
+packaging
+Pillow
+pystray
+win11toast
+pyperclip
+icecream
+beautifulsoup4
