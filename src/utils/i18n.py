@@ -1,6 +1,7 @@
 import gettext
+from typing import Callable
 
-def setup_i18n(language):
+def setup_i18n(language: str) -> Callable[[str], str]:
     _ = gettext.translation(
         domain="messages",
         localedir="locale",

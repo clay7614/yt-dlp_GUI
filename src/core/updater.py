@@ -2,6 +2,9 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from packaging import version
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class UpdateManager:
     """GitHub API またはスクレイピングを使用してアップデート情報を取得するクラス"""
@@ -11,12 +14,12 @@ class UpdateManager:
     LOG_FILE = "log.txt"
 
 
-    def get_latest_version(self):
+    def get_latest_version(self) -> str:
         """最新バージョンをGitHubから取得する。"""
         try:
             r = requests.get(self.LATEST_API_URL, timeout=5)
             if r.status_code == 200:
-                return r.json()["tag_name"]
+                return str(r.json()["tag_name"])
             raise KeyError("API limit or other error")
         except Exception:
             # APIがダメな場合はスクレイピング
@@ -24,11 +27,14 @@ class UpdateManager:
                 response = requests.get(f"{self.RELEASES_URL}/latest", timeout=5)
                 soup = BeautifulSoup(response.text, "html.parser")
                 # セレクタは main.py の既存ロジックを参考
-                return soup.find(class_="d-inline mr-3").text[11:]
+                tag = soup.find(class_="d-inline mr-3")
+                if tag:
+                    return str(tag.text[11:])
+                return "v0.0.0"
             except Exception:
                 return "v0.0.0"
 
-    def fetch_release_notes(self, current_log_version):
+    def fetch_release_notes(self, current_log_version: str) -> str:
         """変更履歴（リリースノート）を取得して log.txt に保存する。"""
         # 最新バージョンを取得
         latest_version = self.get_latest_version()
@@ -76,7 +82,7 @@ class UpdateManager:
                 
                 return latest_version # 更新されたバージョンを返す
             except Exception as e:
-                print(f"Error fetching release notes: {e}")
+                logger.error(f"Error fetching release notes: {e}")
         
         return current_log_version
 

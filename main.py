@@ -6,6 +6,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
 from core.config import ConfigManager
 from utils.i18n import setup_i18n
+from utils.logger import setup_logger
+
+# ロガーのセットアップ
+setup_logger()
+
 from ui.main_window import App
 
 if __name__ == "__main__":

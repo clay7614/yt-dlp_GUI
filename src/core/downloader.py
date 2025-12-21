@@ -1,20 +1,26 @@
 import threading
-import yt_dlp
 import queue
+from typing import Optional, Dict, Any, Callable, List, Union
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class DownloadManager:
     """yt-dlp の呼び出し、オプション構築、ダウンロード進捗管理を行うクラス"""
     
-    def __init__(self, progress_callback=None, postprocessor_callback=None, error_callback=None):
-        self.download_queue = queue.Queue()
-        self.downloading = False
+    def __init__(self, progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+                 postprocessor_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+                 error_callback: Optional[Callable[[Exception], None]] = None) -> None:
+        self.download_queue: queue.Queue = queue.Queue()
+        self.downloading: bool = False
         self.progress_callback = progress_callback
         self.postprocessor_callback = postprocessor_callback
         self.error_callback = error_callback
 
-    def build_options(self, save_path, filename_tmpl, browser, resolution, 
-                      is_audio, embed_thumbnail, only_thumbnail, add_metadata, extension,
-                      start_time=None, end_time=None):
+    def build_options(self, save_path: str, filename_tmpl: str, browser: str, resolution: str, 
+                      is_audio: bool, embed_thumbnail: bool, only_thumbnail: bool, 
+                      add_metadata: bool, extension: str,
+                      start_time: Optional[float] = None, end_time: Optional[float] = None) -> Dict[str, Any]:
         """GUIの入力値から yt-dlp のオプション辞書を生成する。"""
         res_val = str(resolution) if resolution and resolution != "best" else None
         
@@ -74,7 +80,7 @@ class DownloadManager:
             
         return opts
 
-    def add_to_queue(self, url, options):
+    def add_to_queue(self, url: str, options: Dict[str, Any]) -> None:
         """ダウンロードをキューに追加し、スレッドが動いていなければ開始する。"""
         self.download_queue.put((url, options))
         
@@ -82,7 +88,7 @@ class DownloadManager:
             thread = threading.Thread(target=self._download_loop, daemon=True)
             thread.start()
 
-    def _download_loop(self):
+    def _download_loop(self) -> None:
         """キュー内の項目を順番にダウンロードするループ。"""
         self.downloading = True
         while not self.download_queue.empty():
@@ -91,19 +97,20 @@ class DownloadManager:
                 try:
                     ydl.download([url])
                 except Exception as e:
+                    logger.error(f"Download error: {e}")
                     if self.error_callback:
                         self.error_callback(e)
         self.downloading = False
 
-    def _progress_hook(self, d):
+    def _progress_hook(self, d: Dict[str, Any]) -> None:
         """yt-dlp からの進捗情報を受け取り、コールバックを呼ぶ。"""
         if self.progress_callback:
             self.progress_callback(d)
 
-    def _postprocessor_hook(self, d):
+    def _postprocessor_hook(self, d: Dict[str, Any]) -> None:
         """yt-dlp の後処理完了時などに呼ばれる。"""
         if self.postprocessor_callback:
             self.postprocessor_callback(d)
 
-    def get_queue_size(self):
+    def get_queue_size(self) -> int:
         return self.download_queue.qsize()
