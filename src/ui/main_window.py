@@ -5,6 +5,7 @@ import threading
 import tkinter as tk
 import webbrowser
 from tkinter import filedialog
+from tkinterdnd2 import TkinterDnD, DND_FILES
 
 import CTkMenuBar
 import CTkMessagebox
@@ -24,9 +25,10 @@ from utils.helpers import convert_size, version_compare
 
 VERSION = "v2.9.1"
 
-class App(ctk.CTk):
+class App(ctk.CTk, TkinterDnD.DnDWrapper):
     def __init__(self):
         super().__init__()
+        self.TkdndVersion = TkinterDnD._require(self)
 
         self.config_manager = ConfigManager(version=VERSION)
         self.update_manager = UpdateManager()
@@ -49,6 +51,7 @@ class App(ctk.CTk):
 
         self.create_menu()
         self.setup()
+        self.setup_dnd()
         self.load_option()
 
         self.check_version(VERSION)
@@ -154,6 +157,11 @@ class App(ctk.CTk):
         dropdown_link.add_option("Twitch", command=lambda: webbrowser.open("https://www.twitch.tv"))
 
         dropdown_beta.add_option(_("クイックモード"), command=self.start_quick)
+        
+        self.var_clipboard_monitor = tk.BooleanVar(value=False)
+        dropdown_others.add_checkbutton(label=_("クリップボード監視"), onvalue=True, offvalue=False, 
+                                        variable=self.var_clipboard_monitor, command=self.toggle_clipboard_monitor)
+        
         dropdown_others.add_option(_("変更履歴"), command=self.view_release_note)
         dropdown_others.add_option(_("通知オン"), command=self.enable_notification)
         dropdown_others.add_option(_("アンインストール"), command=self.uninstall)
@@ -466,6 +474,43 @@ class App(ctk.CTk):
     def start_quick(self):
         self.write_config(True)
         threading.Thread(target=lambda: QuickMode(self), daemon=True).start()
+
+    def setup_dnd(self):
+        self.drop_target_register(DND_FILES)
+        self.dnd_bind("<<Drop>>", self.drop_url)
+        
+    def drop_url(self, event):
+        url = event.data
+        if url.startswith("{") and url.endswith("}"):
+            url = url[1:-1]
+            
+        self.ent_url.delete(0, tk.END)
+        self.ent_url.insert(0, url)
+        
+    def toggle_clipboard_monitor(self):
+        if self.var_clipboard_monitor.get():
+            self.last_clipboard = pyperclip.paste()
+            self.monitor_clipboard()
+            
+    def monitor_clipboard(self):
+        if not self.var_clipboard_monitor.get():
+            return
+            
+        try:
+            current_clipboard = pyperclip.paste()
+            if current_clipboard != self.last_clipboard:
+                self.last_clipboard = current_clipboard
+                # YouTubeなどのURLか簡易チェック
+                if "http" in current_clipboard and ("youtube.com" in current_clipboard or "youtu.be" in current_clipboard or "nicovideo.jp" in current_clipboard):
+                     if current_clipboard != self.ent_url.get():
+                        self.ent_url.delete(0, tk.END)
+                        self.ent_url.insert(0, current_clipboard)
+                        toast("yt-dlp_GUI", _("URLを検知しました"), duration="short")
+                        
+        except Exception:
+            pass
+            
+        self.after(1000, self.monitor_clipboard)
 
 class ReleaseFrame(ctk.CTkScrollableFrame):
     def __init__(self, master):

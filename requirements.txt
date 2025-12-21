@@ -10,3 +10,4 @@ pystray
 win11toast
 pyperclip
 beautifulsoup4
+tkinterdnd2
