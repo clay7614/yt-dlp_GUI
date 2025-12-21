@@ -29,7 +29,7 @@ class ConfigManager:
     def load(self):
         """INIファイルを読み込む。存在しない場合やキーが欠落している場合は補完する。"""
         if os.path.exists(self.ini_path):
-            self.config.read(self.ini_path, encoding="shift-jis")
+            self.config.read(self.ini_path, encoding="utf-8")
         self.fix_config()
 
     def fix_config(self):
@@ -47,7 +47,7 @@ class ConfigManager:
 
     def save(self):
         """現在の設定をファイルに書き出す。"""
-        with open(self.ini_path, "w") as f:
+        with open(self.ini_path, "w", encoding="utf-8") as f:
             self.config.write(f)
 
     def get(self, section, key, fallback=None):
