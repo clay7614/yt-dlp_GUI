@@ -230,6 +230,9 @@ class App(ctk.CTk):
 
     def select_language(self, language):
         self.language = language
+        from utils.i18n import setup_i18n
+        import builtins
+        builtins._ = setup_i18n(language)
         # re-setup _ will be done on restart
         self.restart(self)
 
@@ -481,10 +484,18 @@ class EditFilename(ctk.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title(_("ファイル名テンプレートの編集"))
+        self.geometry("600x120")
+        
+        self.lbl_info = ctk.CTkLabel(self, text=_("保存ファイル名(空白ならタイトル):"), font=("游ゴシック", 15))
+        self.lbl_info.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+
         self.entry = ctk.CTkEntry(self, font=("游ゴシック", 15))
-        self.entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
         self.entry.insert(0, master.ent_filename.get())
-        ctk.CTkButton(self, text=_("適用"), command=self.apply).grid(row=0, column=1, padx=10, pady=10)
+        
+        self.btn_apply = ctk.CTkButton(self, text=_("適用"), command=self.apply, font=("游ゴシック", 15))
+        self.btn_apply.grid(row=1, column=1, padx=10, pady=10)
+        
         self.columnconfigure(0, weight=1)
     def apply(self):
         self.master.ent_filename.delete(0, tk.END)
