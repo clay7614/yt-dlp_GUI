@@ -461,24 +461,102 @@ class ViewRelease(ctk.CTkToplevel):
 class EditFilename(ctk.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
+        self.fonts = ("游ゴシック", 15)
         self.title(_("ファイル名テンプレートの編集"))
-        self.geometry("600x120")
-        
-        self.lbl_info = ctk.CTkLabel(self, text=_("保存ファイル名(空白ならタイトル):"), font=("游ゴシック", 15))
-        self.lbl_info.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.after(100, self.focus)
 
-        self.entry = ctk.CTkEntry(self, font=("游ゴシック", 15))
-        self.entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
-        self.entry.insert(0, master.ent_filename.get())
-        
-        self.btn_apply = ctk.CTkButton(self, text=_("適用"), command=self.apply, font=("游ゴシック", 15))
-        self.btn_apply.grid(row=1, column=1, padx=10, pady=10)
-        
+        self.dict = {
+            "ID": "id",
+            _("タイトル"): "title",
+            "URL": "url",
+            _("投稿者"): "uploader",
+            _("投稿者ID"): "uploader_id",
+            _("投稿日"): "upload_date",
+            _("動画サイズ縦"): "width",
+            _("動画サイズ横"): "height",
+            "FPS": "fps",
+            _("サイトドメイン"): "extractor",
+            _("プレイリスト名"): "playlist",
+            _("プレイリスト内番号"): "playlist_index",
+        }
+
+        self.frame_entry = ctk.CTkFrame(self)
+        self.frame_entry.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.frame_option = ctk.CTkFrame(self)
+        self.frame_option.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         self.columnconfigure(0, weight=1)
-    def apply(self):
+        self.rowconfigure(1, weight=1)
+        self.frame_entry.columnconfigure(0, weight=1)
+
+        self.entry = ctk.CTkEntry(self.frame_entry, font=self.fonts)
+        self.entry.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.load_text()
+
+        self.btn_apply = ctk.CTkButton(
+            self.frame_entry,
+            font=self.fonts,
+            text=_("適用"),
+            width=30,
+            command=self.apply_text,
+        )
+        self.btn_apply.grid(row=0, column=1, padx=10, pady=10)
+
+        self.btn = [[None for i in range(4)] for j in range(3)]
+
+        # テンプレートボタンの作成
+        self.make_btn(0, 0, "ID")
+        self.make_btn(0, 1, _("タイトル"))
+        self.make_btn(0, 2, _("投稿者"))
+        self.make_btn(0, 3, _("投稿者ID"))
+        self.make_btn(1, 0, _("投稿日"))
+        self.make_btn(1, 1, _("動画サイズ縦"))
+        self.make_btn(1, 2, _("動画サイズ横"))
+        self.make_btn(1, 3, "FPS")
+        self.make_btn(2, 0, _("サイトドメイン"))
+        self.make_btn(2, 1, _("プレイリスト名"))
+        self.make_btn(2, 2, _("プレイリスト内番号"))
+        
+        # クリアボタン
+        btn_clear = ctk.CTkButton(
+            self.frame_option,
+            font=self.fonts,
+            fg_color="transparent",
+            command=lambda: self.entry.delete(0, ctk.END),
+            text=_("クリア")
+        )
+        btn_clear.grid(row=2, column=3, padx=10, pady=10, sticky="nsew")
+
+        for r in range(3):
+            self.frame_option.rowconfigure(r, weight=1)
+        for c in range(4):
+            self.frame_option.columnconfigure(c, weight=1)
+
+    def make_btn(self, r, c, text):
+        btn = ctk.CTkButton(
+            self.frame_option,
+            font=self.fonts,
+            fg_color="transparent",
+            command=lambda: self.entry.insert(ctk.END, '"' + text + '"'),
+            text=text,
+        )
+        btn.grid(row=r, column=c, padx=10, pady=10, sticky="nsew")
+        return btn
+
+    def apply_text(self):
+        text = self.entry.get()
+        for key, val in self.dict.items():
+            text = text.replace('"' + key + '"', "%(" + val + ")s")
         self.master.ent_filename.delete(0, tk.END)
-        self.master.ent_filename.insert(0, self.entry.get())
+        self.master.ent_filename.insert(0, text)
         self.destroy()
+
+    def load_text(self):
+        text = self.master.ent_filename.get()
+        for key, val in self.dict.items():
+            text = text.replace("%(" + val + ")s", '"' + key + '"')
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, text)
 
 class QuickMode:
     def __init__(self, app):
