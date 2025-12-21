@@ -59,7 +59,8 @@ class App(ctk.CTk):
         self.set_submenu_color(self.cookies, self.dict_browser, self.browser)
 
     def view_release_note(self):
-        self.update_manager.fetch_release_notes(self.this_log_version)
+        new_ver = self.update_manager.fetch_release_notes(self.this_log_version)
+        self.this_log_version = new_ver
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = ViewRelease(self)
         else:
@@ -478,7 +479,9 @@ class ReleaseFrame(ctk.CTkScrollableFrame):
 class ViewRelease(ctk.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
+        self.fonts = ("游ゴシック", 15)
         self.title(_("変更履歴")); self.geometry("640x480")
+        self.after(100, self.focus)
         ReleaseFrame(self).grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.grid_columnconfigure(0, weight=1); self.grid_rowconfigure(0, weight=1)
 

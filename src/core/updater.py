@@ -30,53 +30,53 @@ class UpdateManager:
 
     def fetch_release_notes(self, current_log_version):
         """変更履歴（リリースノート）を取得して log.txt に保存する。"""
+        # 最新バージョンを取得
         latest_version = self.get_latest_version()
         
-        # ログが存在しないか、バージョンが古い場合に更新
-        should_update = (
-            not os.path.exists(self.LOG_FILE) or 
-            os.stat(self.LOG_FILE).st_size == 0 or 
-            version.parse(current_log_version) < version.parse(latest_version)
-        )
-
-        if not should_update:
-            return latest_version
-
-        # ページ数を取得
-        try:
-            response = requests.get(self.RELEASES_URL, timeout=5)
-            soup = BeautifulSoup(response.text, "html.parser")
-            page_tags = soup.find_all(class_="pagination")
-            page_num = 1
-            for pt in page_tags:
-                page_num = int(pt.text[-6:-5])
-                break
-
-            log_entries = []
-            for i in range(page_num):
-                url = f"{self.RELEASES_URL}?page={i+1}"
-                res = requests.get(url, timeout=5)
-                s = BeautifulSoup(res.text, "html.parser")
-                notes = s.find_all(class_="Box-body")
-
-                for note in notes:
-                    vers = note.find_all(class_="Link--primary Link")
-                    changes = note.find_all(class_="markdown-body my-3")
-
-                    for v in vers:
-                        v_text = v.text.strip()
-                        if v_text:
-                            log_entries.append(v_text + "\n")
-                    for ch in changes:
-                        ch_text = ch.text.strip()
-                        if ch_text:
-                            log_entries.append(ch_text + "\n\n---\n")
-
-            with open(self.LOG_FILE, "w", encoding="utf-8") as f:
-                f.write("".join(log_entries))
+        # logファイルが存在しない、空、またはアプリ側の記録より新しいバージョンがある場合に取得
+        if not os.path.exists(self.LOG_FILE) or os.path.getsize(self.LOG_FILE) == 0 or \
+           version.parse(current_log_version) < version.parse(latest_version):
             
-        except Exception as e:
-            print(f"Error fetching release notes: {e}")
+            try:
+                # ページ数を取得
+                response = requests.get(self.RELEASES_URL, timeout=5)
+                soup = BeautifulSoup(response.text, "html.parser")
+                page_num = 1
+                pagination = soup.find_all(class_="pagination")
+                for p in pagination:
+                    # テキストから数字を抽出 (例: "Next 1 2 3 ... 5 Previous")
+                    try:
+                        page_num = int(p.text.strip()[-6:-5])
+                    except:
+                        page_num = 1
+                    break
 
-        return latest_version
+                log_entries = []
+                for i in range(page_num):
+                    url = f"{self.RELEASES_URL}?page={i + 1}"
+                    response = requests.get(url, timeout=5)
+                    soup = BeautifulSoup(response.text, "html.parser")
+                    notes = soup.find_all(class_="Box-body")
+
+                    for note in notes:
+                        vers = note.find_all(class_="Link--primary Link")
+                        changes = note.find_all(class_="markdown-body my-3")
+
+                        for v in vers:
+                            v_text = v.text.strip()
+                            if v_text:
+                                log_entries.append(v_text + "\n")
+                        for ch in changes:
+                            ch_text = ch.text.strip()
+                            if ch_text:
+                                log_entries.append(ch_text + "\n\n---\n")
+
+                with open(self.LOG_FILE, "w", encoding="utf-8") as f:
+                    f.write("".join(log_entries))
+                
+                return latest_version # 更新されたバージョンを返す
+            except Exception as e:
+                print(f"Error fetching release notes: {e}")
+        
+        return current_log_version
 
