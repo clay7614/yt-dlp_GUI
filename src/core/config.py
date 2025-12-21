@@ -27,19 +27,23 @@ class ConfigManager:
         self.load()
 
     def load(self):
-        """INIファイルを読み込む。存在しない場合は初期化する。"""
-        if not os.path.exists(self.ini_path):
-            self.fix_config()
-        self.config.read(self.ini_path, encoding="shift-jis")
+        """INIファイルを読み込む。存在しない場合やキーが欠落している場合は補完する。"""
+        if os.path.exists(self.ini_path):
+            self.config.read(self.ini_path, encoding="shift-jis")
+        self.fix_config()
 
     def fix_config(self):
         """欠落しているセクションやキーを補完する。"""
+        changed = False
         for section, key, value in self.default_config:
             if not self.config.has_section(section):
                 self.config[section] = {}
+                changed = True
             if not self.config.has_option(section, key):
                 self.config[section][key] = value
-        self.save()
+                changed = True
+        if changed:
+            self.save()
 
     def save(self):
         """現在の設定をファイルに書き出す。"""

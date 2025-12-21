@@ -21,9 +21,5 @@ if __name__ == "__main__":
     # アプリケーションの実行
     app = App()
     
-    # QuickMode 用にインスタンスを公開（簡易的な実装）
-    import ui.main_window
-    ui.main_window.main_app_instance = app
-    
     app.protocol("WM_DELETE_WINDOW", lambda: app.write_config(False))
     app.mainloop()

@@ -440,7 +440,7 @@ class App(ctk.CTk):
 
     def start_quick(self):
         self.write_config(True)
-        threading.Thread(target=QuickMode, daemon=True).start()
+        threading.Thread(target=lambda: QuickMode(self), daemon=True).start()
 
 class ReleaseFrame(ctk.CTkScrollableFrame):
     def __init__(self, master):
@@ -481,7 +481,8 @@ class EditFilename(ctk.CTkToplevel):
         self.destroy()
 
 class QuickMode:
-    def __init__(self):
+    def __init__(self, app):
+        self.app = app
         image = Image.open("icon.ico")
         menu = Menu(MenuItem(_("ダウンロード"), self.download, default=True),
                     MenuItem(_("クイックモードを終了する"), self.quit),
@@ -489,12 +490,8 @@ class QuickMode:
         self.icon = Icon("yt-dlp_GUI", icon=image, title="yt-dlp_GUI", menu=menu)
         self.icon.run()
     def quit(self):
-        import ui.main_window
-        if hasattr(ui.main_window, "main_app_instance"):
-            ui.main_window.main_app_instance.deiconify()
+        self.app.deiconify()
         self.icon.stop()
     def download(self):
-        import ui.main_window
-        if hasattr(ui.main_window, "main_app_instance"):
-            ui.main_window.main_app_instance.paste()
-            ui.main_window.main_app_instance.start_download()
+        self.app.paste()
+        self.app.start_download()

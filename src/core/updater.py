@@ -64,30 +64,19 @@ class UpdateManager:
                     changes = note.find_all(class_="markdown-body my-3")
 
                     for v in vers:
-                        log_entries.append(v.text + "\n")
+                        v_text = v.text.strip()
+                        if v_text:
+                            log_entries.append(v_text + "\n")
                     for ch in changes:
-                        log_entries.append(ch.text + "\n\n---\n")
+                        ch_text = ch.text.strip()
+                        if ch_text:
+                            log_entries.append(ch_text + "\n\n---\n")
 
             with open(self.LOG_FILE, "w", encoding="utf-8") as f:
                 f.write("".join(log_entries))
-
-            self._clean_log_file()
             
         except Exception as e:
             print(f"Error fetching release notes: {e}")
 
         return latest_version
 
-    def _clean_log_file(self):
-        """log.txt の中身を整形する。"""
-        if not os.path.exists(self.LOG_FILE):
-            return
-            
-        with open(self.LOG_FILE, "r+", encoding="utf-8") as f:
-            lines = f.readlines()
-            f.seek(0)
-            f.truncate()
-            # 既存の main.py では特定の行を削除していたが、基本は空行とトリミング
-            for line in lines:
-                if line.strip():
-                    f.write(line)
