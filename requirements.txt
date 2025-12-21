@@ -7,7 +7,6 @@ yt-dlp
 packaging
 Pillow
 pystray
-win11toast
 pyperclip
 beautifulsoup4
 tkinterdnd2

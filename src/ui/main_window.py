@@ -15,7 +15,7 @@ import pyperclip
 import requests
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
-from win11toast import toast
+from ui.toast import show_toast
 
 from core.config import ConfigManager
 from core.updater import UpdateManager
@@ -458,13 +458,8 @@ class App(ctk.CTk, TkinterDnD.DnDWrapper):
         elif d["status"] == "finished" and d["postprocessor"] == "MoveFiles":
             self.lbl_progress.configure(text=self.filename + _("\nダウンロード完了"))
             
-            app_id = "yt-dlp_GUI"
-            if self.notification != "0":
-                app_id += "_" + self.notification
-                
-            toast("yt-dlp_GUI", 
-                  _("ダウンロードが完了しました") + f"({_('残り：')}{self.download_manager.get_queue_size()})\n{d['info_dict']['title']}",
-                  app_id=app_id)
+            show_toast(self, "yt-dlp_GUI", 
+                  _("ダウンロードが完了しました") + f"({_('残り：')}{self.download_manager.get_queue_size()})\n{d['info_dict']['title']}")
 
     def convert_size(self, size):
         return convert_size(size)
@@ -474,6 +469,8 @@ class App(ctk.CTk, TkinterDnD.DnDWrapper):
             self.toplevel_window = EditFilename(self)
         else:
             self.toplevel_window.focus()
+
+from ui.toast import show_toast
 
     def start_quick(self):
         self.write_config(True)
@@ -509,7 +506,7 @@ class App(ctk.CTk, TkinterDnD.DnDWrapper):
                      if current_clipboard != self.ent_url.get():
                         self.ent_url.delete(0, tk.END)
                         self.ent_url.insert(0, current_clipboard)
-                        toast("yt-dlp_GUI", _("URLを検知しました"), duration="short")
+                        show_toast(self, "yt-dlp_GUI", _("URLを検知しました"))
                         
         except Exception:
             pass
