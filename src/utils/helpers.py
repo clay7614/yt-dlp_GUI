@@ -4,7 +4,7 @@ def convert_size(size):
     """バイト単位の数値を読みやすい単位（MB, GBなど）に変換する。"""
     if not size or size == 0:
         return "0 B"
-    units = ("B", "KB", "MB", "GB", "TB")
+    units = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB")
     i = math.floor(math.log(size, 1024)) if size > 0 else 0
     return f"{round(size / 1024**i, 2)} {units[i]}"
 

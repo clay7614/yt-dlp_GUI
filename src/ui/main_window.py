@@ -390,6 +390,18 @@ class App(ctk.CTk):
             return
 
         res = self.cmb_resoluion.get()
+        
+        start_time = None
+        end_time = None
+        if self.var_chk_duration.get():
+            try:
+                st = datetime.datetime.strptime(self.ent_duration_start.get(), "%X")
+                et = datetime.datetime.strptime(self.ent_duration_end.get(), "%X")
+                start_time = datetime.timedelta(hours=st.hour, minutes=st.minute, seconds=st.second).total_seconds()
+                end_time = datetime.timedelta(hours=et.hour, minutes=et.minute, seconds=et.second).total_seconds()
+            except ValueError:
+                pass
+
         opts = self.download_manager.build_options(
             save_path=file_path,
             filename_tmpl=self.ent_filename.get(),
@@ -399,7 +411,9 @@ class App(ctk.CTk):
             embed_thumbnail=self.var_chk_thumbnail.get(),
             only_thumbnail=self.var_chk_onlythumbnail.get(),
             add_metadata=self.var_chk_metadata.get(),
-            extension=self.cmb_extension.get()
+            extension=self.cmb_extension.get(),
+            start_time=start_time,
+            end_time=end_time
         )
 
         self.download_finished_count = 1 if self.var_chk_audio.get() else 2
@@ -412,11 +426,14 @@ class App(ctk.CTk):
         self.filename = d.get("filename", "***")
         if d["status"] == "downloading":
             downloading_text = _("音声") if self.download_finished_count == 1 else _("動画")
-            p = d.get("downloaded_bytes", 0) / d.get("total_bytes_estimate", 1)
+            total = d.get("total_bytes") or d.get("total_bytes_estimate")
+            downloaded = d.get("downloaded_bytes", 0)
+            
+            p = downloaded / total if total else 0
             speed = self.convert_size(d.get("speed", 0))
             eta = str(datetime.timedelta(seconds=round(float(d.get("eta", 0))))) if d.get("eta") else "..."
             
-            self.lbl_progress.configure(text=f"{self.filename}\n{downloading_text}をダウンロード中：{round(p*100, 1)}% / {self.convert_size(d.get('total_bytes_estimate', 0))} ({speed}/s)")
+            self.lbl_progress.configure(text=f"{self.filename}\n{downloading_text}をダウンロード中：{round(p*100, 1)}% / {self.convert_size(total or downloaded)} ({speed}/s)")
             self.lbl_eta.configure(text=_("\n残り ") + eta)
             self.pbar_progress.set(p)
         elif d["status"] == "finished":
@@ -427,7 +444,14 @@ class App(ctk.CTk):
             self.lbl_progress.configure(text=self.filename + _("\n処理中"))
         elif d["status"] == "finished" and d["postprocessor"] == "MoveFiles":
             self.lbl_progress.configure(text=self.filename + _("\nダウンロード完了"))
-            toast("yt-dlp_GUI", _("ダウンロードが完了しました") + f"({_('残り：')}{self.download_manager.get_queue_size()})\n{d['info_dict']['title']}")
+            
+            app_id = "yt-dlp_GUI"
+            if self.notification != "0":
+                app_id += "_" + self.notification
+                
+            toast("yt-dlp_GUI", 
+                  _("ダウンロードが完了しました") + f"({_('残り：')}{self.download_manager.get_queue_size()})\n{d['info_dict']['title']}",
+                  app_id=app_id)
 
     def convert_size(self, size):
         return convert_size(size)

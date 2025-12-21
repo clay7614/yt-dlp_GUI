@@ -13,15 +13,24 @@ class DownloadManager:
         self.error_callback = error_callback
 
     def build_options(self, save_path, filename_tmpl, browser, resolution, 
-                      is_audio, embed_thumbnail, only_thumbnail, add_metadata, extension):
+                      is_audio, embed_thumbnail, only_thumbnail, add_metadata, extension,
+                      start_time=None, end_time=None):
         """GUIの入力値から yt-dlp のオプション辞書を生成する。"""
         res_val = str(resolution) if resolution and resolution != "best" else None
         
         # 基本フォーマット設定
         if is_audio:
             fmt = "bestaudio/best"
+        elif extension == "webm":
+            if not res_val:
+                fmt = "bestvideo[ext=webm]/bestvideo+bestaudio/best[ext=mp4]"
+            else:
+                fmt = f"best[ext=webm]/bestvideo[height<={res_val}]+bestaudio/best[ext=mp4]"
         else:
-            fmt = f"bestvideo[ext=mp4]{'[height<='+res_val+']' if res_val else ''}+bestaudio[ext=m4a]/best[ext=mp4]"
+            if not res_val:
+                fmt = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]"
+            else:
+                fmt = f"bestvideo[ext=mp4][height<={res_val}]+bestaudio[ext=m4a]/bestvideo[ext=mp4][height<={res_val}]+bestaudio/best[ext=mp4]"
 
         opts = {
             "format": fmt,
@@ -46,12 +55,22 @@ class DownloadManager:
         if add_metadata:
             opts["postprocessors"].append({"key": "FFmpegMetadata", "add_metadata": True})
             
-        if is_audio:
             opts["postprocessors"].append({
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": extension,
-                "preferredquality": "192"
             })
+        
+        if not is_audio and extension == "webm":
+            opts["postprocessors"].append({
+                "key": "FFmpegVideoConvertor",
+                "preferedformat": "webm",
+            })
+
+        if start_time is not None and end_time is not None:
+            opts["download_ranges"] = lambda *args: [{
+                "start_time": start_time,
+                "end_time": end_time,
+            }]
             
         return opts
 
