@@ -230,8 +230,10 @@ class EditTheme(ctk.CTkToplevel):
             self.color_label[i].insert(0, self.colors[i - len(self.bases)])
 
     def save_json(self):
-        from .default_theme import DEFAULT_THEME_JSON
-        default_json = DEFAULT_THEME_JSON
+        import os
+        json_path = os.path.join(os.path.dirname(__file__), "default_theme.json")
+        with open(json_path, "r", encoding="utf-8") as f:
+            default_json_text = f.read()
 
         # 置換元の色のリスト
         replace_words = [
@@ -249,8 +251,8 @@ class EditTheme(ctk.CTkToplevel):
         ]
         # 色を置換
         for i, replace_word in enumerate(replace_words):
-            default_json = default_json.replace(replace_word, colors[i])
-        default_json = json.loads(default_json)
+            default_json_text = default_json_text.replace(replace_word, colors[i])
+        default_json = json.loads(default_json_text)
         self.config["Colors"] = {}
         self.config["Colors"]["color"] = str(colors)
         with open("color.ini", "w") as f:
