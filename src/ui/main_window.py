@@ -23,6 +23,7 @@ from core.config import ConfigManager
 from core.updater import UpdateManager
 from core.downloader import DownloadManager
 from ui import color
+from utils.helpers import convert_size, version_compare
 
 VERSION = "v2.9.1"
 
@@ -432,10 +433,7 @@ class App(ctk.CTk):
             toast("yt-dlp_GUI", _("ダウンロードが完了しました") + f"({_('残り：')}{self.download_manager.get_queue_size()})\n{d['info_dict']['title']}")
 
     def convert_size(self, size):
-        if not size: return "0 B"
-        units = ("B", "KB", "MB", "GB", "TB")
-        i = math.floor(math.log(size, 1024)) if size > 0 else 0
-        return f"{round(size / 1024**i, 2)} {units[i]}"
+        return convert_size(size)
 
     def edit_filename(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
@@ -446,12 +444,6 @@ class App(ctk.CTk):
     def start_quick(self):
         self.write_config(True)
         threading.Thread(target=QuickMode, daemon=True).start()
-
-def version_compare(v1, v2):
-    from packaging.version import parse
-    v1 = parse(v1)
-    v2 = parse(v2)
-    return (v1 > v2) - (v1 < v2)
 
 class ReleaseFrame(ctk.CTkScrollableFrame):
     def __init__(self, master):

@@ -5,7 +5,7 @@ import json
 import tkinter as tk
 
 import customtkinter as ctk
-import matplotlib.colors as mcolors
+from utils.helpers import hex_to_rgb, rgb_to_hex
 
 
 class EditTheme(ctk.CTkToplevel):
@@ -53,7 +53,7 @@ class EditTheme(ctk.CTkToplevel):
                 "#1F6AA5",
             ]
         self.color_bar_list = [
-            f"{mcolors.to_hex(colorsys.hsv_to_rgb(hue/72, 0.7, 0.65))}"
+            f"{rgb_to_hex(colorsys.hsv_to_rgb(hue/72, 0.7, 0.65))}"
             for hue in range(72)
         ]
 
@@ -198,11 +198,8 @@ class EditTheme(ctk.CTkToplevel):
             [0.65, 0.33],
             [0.66, 0.49],
         ]
-        hue, sat, val = colorsys.rgb_to_hsv(
-            mcolors.to_rgb(current_color[0])[0],
-            mcolors.to_rgb(current_color[0])[1],
-            mcolors.to_rgb(current_color[0])[2],
-        )
+        rgb = hex_to_rgb(current_color[0])
+        hue, sat, val = colorsys.rgb_to_hsv(rgb[0], rgb[1], rgb[2])
 
         self.slider_hsv[0].set(hue)
         self.slider_hsv[1].set((sat + 0.45 - self.bases[0][0]) / 0.55)
@@ -219,7 +216,7 @@ class EditTheme(ctk.CTkToplevel):
 
         # スライダーから取得したHSV値と初期値から16進数表記のカラーコードを生成
         self.colors = [
-            f"{mcolors.to_hex(colorsys.hsv_to_rgb(hue, base[0]-0.45+sat*0.55, base[1]-0.25+val*0.55))}"
+            f"{rgb_to_hex(colorsys.hsv_to_rgb(hue, base[0]-0.45+sat*0.55, base[1]-0.25+val*0.55))}"
             for i, base in enumerate(self.bases)
         ]
         # ウィジェットへ適用
