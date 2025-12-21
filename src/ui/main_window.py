@@ -1,5 +1,4 @@
 import datetime
-import gettext
 import io
 import math
 import os
@@ -16,7 +15,6 @@ import customtkinter as ctk
 import darkdetect
 import pyperclip
 import requests
-import yt_dlp
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 from win11toast import toast
@@ -394,28 +392,17 @@ class App(ctk.CTk):
             return
 
         res = self.cmb_resoluion.get()
-        res_val = str(res) if res != _("最高画質") else None
-        
-        opts = {
-            "format": f"bestvideo[ext=mp4]{'[height<='+res_val+']' if res_val else ''}+bestaudio[ext=m4a]/best[ext=mp4]",
-            "outtmpl": f"{file_path}/{self.ent_filename.get() or '%(title)s'}.%(ext)s",
-            "ignoreerrors": "only_download",
-            "postprocessors": []
-        }
-        
-        if self.browser: opts["cookiesfrombrowser"] = (self.browser,)
-        if self.var_chk_thumbnail.get():
-            opts["writethumbnail"] = True
-            opts["postprocessors"].append({"key": "EmbedThumbnail"})
-        if self.var_chk_onlythumbnail.get():
-            opts["writethumbnail"] = True
-            opts["skip_download"] = True
-        if self.var_chk_metadata.get():
-            opts["postprocessors"].append({"key": "FFmpegMetadata", "add_metadata": True})
-            
-        if self.var_chk_audio.get():
-            opts["format"] = "bestaudio/best"
-            opts["postprocessors"].append({"key": "FFmpegExtractAudio", "preferredcodec": self.cmb_extension.get(), "preferredquality": "192"})
+        opts = self.download_manager.build_options(
+            save_path=file_path,
+            filename_tmpl=self.ent_filename.get(),
+            browser=self.browser,
+            resolution="best" if res == _("最高画質") else res,
+            is_audio=self.var_chk_audio.get(),
+            embed_thumbnail=self.var_chk_thumbnail.get(),
+            only_thumbnail=self.var_chk_onlythumbnail.get(),
+            add_metadata=self.var_chk_metadata.get(),
+            extension=self.cmb_extension.get()
+        )
 
         self.download_finished_count = 1 if self.var_chk_audio.get() else 2
         self.download_manager.add_to_queue(url, opts)
@@ -462,7 +449,9 @@ class App(ctk.CTk):
 
 def version_compare(v1, v2):
     from packaging.version import parse
-    return (parse(v1) > parse(v2)) - (parse(v1) < parse(v2))
+    v1 = parse(v1)
+    v2 = parse(v2)
+    return (v1 > v2) - (v1 < v2)
 
 class ReleaseFrame(ctk.CTkScrollableFrame):
     def __init__(self, master):

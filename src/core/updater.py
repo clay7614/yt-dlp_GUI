@@ -54,9 +54,7 @@ class UpdateManager:
                 page_num = int(pt.text[-6:-5])
                 break
 
-            with open(self.LOG_FILE, "w", encoding="utf-8") as f:
-                f.truncate(0)
-
+            log_entries = []
             for i in range(page_num):
                 url = f"{self.RELEASES_URL}?page={i+1}"
                 res = requests.get(url, timeout=5)
@@ -67,13 +65,14 @@ class UpdateManager:
                     vers = note.find_all(class_="Link--primary Link")
                     changes = note.find_all(class_="markdown-body my-3")
 
-                    with open(self.LOG_FILE, "a", encoding="utf-8") as f:
-                        for v in vers:
-                            f.write(v.text + "\n")
-                        for ch in changes:
-                            f.write(ch.text + "\n\n---\n")
+                    for v in vers:
+                        log_entries.append(v.text + "\n")
+                    for ch in changes:
+                        log_entries.append(ch.text + "\n\n---\n")
 
-            # 不要な空行などを整理（既存 main.py 169行目あたりのロジックを模倣）
+            with open(self.LOG_FILE, "w", encoding="utf-8") as f:
+                f.write("".join(log_entries))
+
             self._clean_log_file()
             
         except Exception as e:
