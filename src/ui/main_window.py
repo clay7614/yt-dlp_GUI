@@ -470,8 +470,6 @@ class App(ctk.CTk, TkinterDnD.DnDWrapper):
         else:
             self.toplevel_window.focus()
 
-from ui.toast import show_toast
-
     def start_quick(self):
         self.write_config(True)
         threading.Thread(target=lambda: QuickMode(self), daemon=True).start()
