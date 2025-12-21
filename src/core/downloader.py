@@ -1,7 +1,7 @@
 import threading
 import yt_dlp
 import queue
-import ic
+
 
 class DownloadManager:
     """yt-dlp の呼び出し、オプション構築、ダウンロード進捗管理を行うクラス"""

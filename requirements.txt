@@ -9,5 +9,4 @@ Pillow
 pystray
 win11toast
 pyperclip
-icecream
 beautifulsoup4
