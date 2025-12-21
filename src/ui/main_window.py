@@ -158,9 +158,8 @@ class App(ctk.CTk, TkinterDnD.DnDWrapper):
 
         dropdown_beta.add_option(_("クイックモード"), command=self.start_quick)
         
-        self.var_clipboard_monitor = tk.BooleanVar(value=False)
-        dropdown_others.add_checkbutton(label=_("クリップボード監視"), onvalue=True, offvalue=False, 
-                                        variable=self.var_clipboard_monitor, command=self.toggle_clipboard_monitor)
+        dropdown_beta.add_option(_("クイックモード"), command=self.start_quick)
+        
         
         dropdown_others.add_option(_("変更履歴"), command=self.view_release_note)
         dropdown_others.add_option(_("通知オン"), command=self.enable_notification)
@@ -328,15 +327,20 @@ class App(ctk.CTk, TkinterDnD.DnDWrapper):
         self.var_chk_metadata = ctk.BooleanVar(); self.chk_metadata = ctk.CTkCheckBox(self.frame_option, text=_("メタデータを埋め込む"), font=self.fonts, variable=self.var_chk_metadata)
         self.chk_metadata.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
 
-        ctk.CTkLabel(self.frame_option, text=_("拡張子を選択"), font=self.fonts).grid(row=4, column=0, padx=10, pady=(5, 0), sticky="ew")
+        ctk.CTkLabel(self.frame_option, text=_("拡張子を選択"), font=self.fonts).grid(row=5, column=0, padx=10, pady=(5, 0), sticky="ew")
         self.dict_file = {"movie": ["mp4", "webm"], "audio": ["mp3", "wav", "m4a", "opus"]}
         self.cmb_extension = ctk.CTkComboBox(self.frame_option, values=self.dict_file["movie"], font=self.fonts, command=self.check_option)
-        self.cmb_extension.grid(row=5, column=0, padx=10, pady=(0, 5), sticky="ew")
+        self.cmb_extension.grid(row=6, column=0, padx=10, pady=(0, 5), sticky="ew")
 
-        ctk.CTkLabel(self.frame_option, text=_("解像度を選択"), font=self.fonts).grid(row=6, column=0, padx=10, pady=(5, 0), sticky="ew")
+        ctk.CTkLabel(self.frame_option, text=_("解像度を選択"), font=self.fonts).grid(row=7, column=0, padx=10, pady=(5, 0), sticky="ew")
         self.resolution_size = ["144", "240", "360", "480", "720", "1080", "1440", "2160", "4320", _("最高画質")]
         self.cmb_resoluion = ctk.CTkComboBox(self.frame_option, values=self.resolution_size, font=self.fonts, command=self.check_option)
-        self.cmb_resoluion.grid(row=7, column=0, padx=10, pady=(0, 5), sticky="ew")
+        self.cmb_resoluion.grid(row=8, column=0, padx=10, pady=(0, 5), sticky="ew")
+
+        self.var_clipboard_monitor = tk.BooleanVar(value=False)
+        self.sw_clipboard = ctk.CTkSwitch(self.frame_option, text=_("クリップボード監視"), font=self.fonts, 
+                                          variable=self.var_clipboard_monitor, command=self.toggle_clipboard_monitor)
+        self.sw_clipboard.grid(row=4, column=0, padx=10, pady=(10, 5), sticky="ew")
 
     def paste(self):
         self.ent_url.delete(0, tk.END)

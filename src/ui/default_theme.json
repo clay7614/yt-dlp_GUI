@@ -111,7 +111,7 @@
         "corner_radius": 1000,
         "border_width": 3,
         "button_length": 0,
-        "fg_Color": [
+        "fg_color": [
             "gray60",
             "grey30"
         ],
